@@ -155,7 +155,7 @@ namespace Vectrics
         public bool IsRightSide(Vector2D pt)
         {
             //its the basic idea of the crossproduct in R3 with a garuanteed 0 for z.
-            return Start.X * (End.Y - pt.Y) + End.X * (pt.Y - Start.Y) + pt.X * (Start.Y - End.Y) < 0;
+            return Start.X * (End.Y - pt.Y) + End.X * (pt.Y - Start.Y) + pt.X * (Start.Y - End.Y) > 0;
         }
 
         public bool IsSameSide(Vector2D a, Vector2D b)
@@ -238,6 +238,15 @@ namespace Vectrics
 
             float denom = StartToEnd.Cross(ov);
             return ov.Cross(s) / denom;
+        }
+
+        public float GetIntersectionRatio(Vector2D start, Vector2D dir)
+        {
+            //see IsIntersecting...
+            Vector2D s = Start - start;
+
+            float denom = StartToEnd.Cross(dir);
+            return dir.Cross(s) / denom;
         }
 
 

@@ -89,6 +89,16 @@ namespace Vectrics
                 Height = bottom - Y;
             }
         }
+                
+        public Vector2D Size
+        {
+            get { return new Vector2D(Width, Height); }
+        }
+
+        public Vector2D Center
+        {
+            get { return new Vector2D(X + Width / 2, Y + Height / 2); }
+        }
 
         public float Right
 		{
@@ -133,19 +143,34 @@ namespace Vectrics
 			Y = y;
 			Width = w;
 			Height = h;
-		}	
-	
+		}
+
+        public Rectangle2D(Vector2D topLeft, Vector2D size)
+        {
+            X = topLeft.X;
+            Y = topLeft.Y;
+            Width = size.X;
+            Height = size.Y;
+        }	
 		
 		/**
 		 * Assigns new coordinates and dimension to this rectangle.
 		 */
-		public void Reset(float x = 0, float y = 0, float w = 0, float h = 0 )
+		public void Set(float x = 0, float y = 0, float w = 0, float h = 0 )
 		{
 			X = x;
 			Y = y;
 			Width = w;
 			Height = h;
 		}
+
+        public void Set(Vector2D topLeft, Vector2D size)
+        {
+            X = topLeft.X;
+            Y = topLeft.Y;
+            Width = size.X;
+            Height = size.Y;
+        }
 
         public void Constrain(Rectangle2D rect)
         {
@@ -315,59 +340,26 @@ namespace Vectrics
             Width += 2 * marginX;
             Height += 2 * marginY;
         }
-		
-		/**
-		 * Shrinks the rectangle by mapping top and left to the smallest following and right 
-		 * and bottom to the largest previous integer
-		 */
-		public void Floor()
-		{
-			double x2 = Math.Floor(X + Width);
-            double y2 = Math.Floor(Y + Height);
-			X = (float)Math.Ceiling(X);
-			Y = (float)Math.Ceiling(Y);
-			Width = (float)(x2 - X);
-			Height = (float)(y2 - Y);
-		}
-		
-		/**
-		 * Expands the rectangle by mapping top and left to the largest previous and right 
-		 * and bottom to the smallest following integer
-		 */		
-		public void Ceil()
-		{
-  			double x2 = Math.Ceiling(X + Width);
-			double y2 = Math.Ceiling(Y + Height);
-			X = (float)Math.Floor(X);
-            Y = (float)Math.Floor(Y);
-            Width = (float)(x2 - X);
-            Height = (float)(y2 - Y);
-		}
 
-        /**
-         * Expands or shrinks each edge of the rectangle to the closest integer
-         */
-        public void Round()
+
+        public void ShrinkToGrid(float gridSpacing)
         {
-            double x2 = Math.Round(X + Width);
-            double y2 = Math.Round(Y + Height);
-            X = (float)Math.Round(X);
-            Y = (float)Math.Round(Y);
+            double x2 = gridSpacing * Math.Floor((X + Width) / gridSpacing);
+            double y2 = gridSpacing * Math.Floor((Y + Height) / gridSpacing);
+            X = gridSpacing * (float)Math.Ceiling(X / gridSpacing);
+            Y = gridSpacing * (float)Math.Ceiling(Y / gridSpacing);
             Width = (float)(x2 - X);
             Height = (float)(y2 - Y);
         }
 
-        /**
-		 * Scales the rectangle by a vector.
-		 */
-        public static Rectangle2D operator *(Rectangle2D r, float scale)
+        public void ExpandToGrid(float gridSpacing)
         {
-            Rectangle2D result = r;
-            result.X *= scale;
-            result.Y *= scale;
-            result.Width *= scale;
-            result.Height *= scale;
-            return result;
+            double x2 = gridSpacing * Math.Ceiling((X + Width) / gridSpacing);
+            double y2 = gridSpacing * Math.Ceiling((Y + Height) / gridSpacing);
+            X = gridSpacing * (float)Math.Floor(X / gridSpacing);
+            Y = gridSpacing * (float)Math.Floor(Y / gridSpacing);
+            Width = (float)(x2 - X);
+            Height = (float)(y2 - Y);
         }
 
         /**

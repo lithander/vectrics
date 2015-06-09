@@ -96,10 +96,23 @@ namespace Vectrics
 
             return NormalizeRad((float)Math.Atan2(v.Y, v.X) - (float)Math.Atan2(v2.Y, v2.X));
 		}
-		
+
+        public static float ConeAngleDegree(Vector2D v, Vector2D v2)
+        {
+            if (v == v2)
+                return 0.0f;
+
+            return NormalizeRad((float)Math.Atan2(v.Y, v.X) - (float)Math.Atan2(v2.Y, v2.X)) * 180 / PI;
+        }
+
 		public static float PolarAngleRadian(Vector2D v)
 		{
 			return (float)Math.Atan2(v.Y, v.X);
 		}
+
+        public static float PolarAngleDegree(Vector2D v)
+        {
+            return (float)Math.Atan2(v.Y, v.X) * 180 / PI;
+        }
     }
 }

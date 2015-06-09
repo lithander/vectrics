@@ -10,6 +10,7 @@ namespace Vectrics
     public struct Vector2D
     {
         public static Vector2D Zero = new Vector2D(0, 0);
+        public static Vector2D Half = new Vector2D(0.5f, 0.5f);
         public static Vector2D One = new Vector2D(1, 1);
 
         public static Vector2D Up = new Vector2D(0, -1);
@@ -62,6 +63,17 @@ namespace Vectrics
             return result;
         }
 
+        public bool IsZero
+        {
+            get { return X == 0 && Y == 0; }
+        }
+
+        private const float EPSILON_SQR = 0.000001f;
+        public bool IsAlmostZero
+        {
+            get { return (X * X + Y * Y) < EPSILON_SQR; }
+        }
+
         public float Length
         {
             get
@@ -87,6 +99,20 @@ namespace Vectrics
                 float f = (float)(Math.Sqrt(value) / Math.Sqrt(X * X + Y * Y));
                 X *= f;
                 Y *= f;
+            }
+        }
+
+        /**
+         * The (signed) axis in which direction the vector points most
+         * */
+        public Vector2D DominantAxis
+        {
+            get
+            {
+                if (Math.Abs(X) > Math.Abs(Y))
+                    return new Vector2D(X, 0);
+                else
+                    return new Vector2D(0, Y);
             }
         }
 
@@ -152,10 +178,28 @@ namespace Vectrics
             return result;
         }
 
+        public void Reflect(Vector2D normal, float scale)
+        {
+            if (X == 0 && Y == 0)
+                return;
+
+            float dot = X * normal.X + Y * normal.Y;
+            X -= (1 + scale) * normal.X * dot;
+            Y -= (1 + scale) * normal.Y * dot;
+        }
+
+        public Vector2D Reflected(Vector2D normal, float scale)
+        {
+            Vector2D result = this;
+            result.Reflect(normal, scale);
+            return result;
+        }
+
         public Vector2D ProjectedOn(Vector2D direction)
         {
-            Vector2D normalized = direction.Normalized();
-            return normalized * Dot(normalized);
+            //Vector2D normalized = direction.Normalized();
+            //return normalized * Dot(normalized);
+            return direction * Dot(direction) / direction.LengthSquared;
         }
 
         //Operations
@@ -429,6 +473,7 @@ namespace Vectrics
             Vector2D p = (Vector2D)obj;
             return (X == p.X && Y == p.Y);
         }
+
         public override int GetHashCode()
         {
             return (int)X ^ (int)Y;
@@ -436,7 +481,7 @@ namespace Vectrics
         
 		public override string ToString()
 		{
-			return string.Format("({0},{1})", X, Y);
+			return string.Format("({0} {1})", X, Y);
 		}
     }
 }
