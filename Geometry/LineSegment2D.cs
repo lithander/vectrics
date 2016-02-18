@@ -8,8 +8,16 @@ using System.Text;
 
 namespace Vectrics
 {
-    public class LineSegment2D
+    public struct LineSegment2D
     {
+        public static LineSegment2D Zero = new LineSegment2D();
+        public static LineSegment2D Void = new LineSegment2D(Vector2D.Void, Vector2D.Void);
+
+        public bool IsVoid
+        {
+            get { return Start.IsVoid || End.IsVoid; }
+        }
+        
         [Flags]
         public enum Relation
         {
@@ -36,7 +44,7 @@ namespace Vectrics
 
             set
             {
-                End.Set(Start + value);
+                End = Start + value;
             }
         }
 
@@ -52,8 +60,29 @@ namespace Vectrics
 
             set
             {
-                Start.Set(End - value);
+                Start = End - value;
             }
+        }
+
+        public Vector2D Center
+        {
+            get
+            {
+                return 0.5f * (Start + End);
+            }
+
+            set
+            {
+                Vector2D delta = value - Center;
+                Start += delta;
+                End += delta;
+            }
+        }
+
+        //start -> end normalized
+        public Vector2D Direction
+        {
+            get { return (End - Start).SafeNormalized(); }
         }
 
         public LineSegment2D(Vector2D startPoint, Vector2D endPoint)
@@ -62,22 +91,10 @@ namespace Vectrics
             End = endPoint;
         }
 
-        public LineSegment2D(int x, int y, int x2, int y2)
+        public LineSegment2D(float x, float y, float x2, float y2)
         {
-            Start.Set(x, y);
-            End.Set(x2, y2);
-        }
-
-        public void SetRef(Vector2D startPoint, Vector2D endPoint)
-        {
-            Start = startPoint;
-            End = endPoint;
-        }
-
-        public void SetCopy(Vector2D startPoint, Vector2D endPoint)
-        {
-            Start.Set(startPoint);
-            End.Set(endPoint);
+            Start = new Vector2D(x, y);
+            End = new Vector2D(x2, y2);
         }
 
         public float Length
@@ -96,37 +113,13 @@ namespace Vectrics
             }
         }
 
-        /**
-		 * Make a copy of this line segment.
-		 */
-        public LineSegment2D Clone()
-        {
-            return new LineSegment2D(Start, End);
-        }
-
         public static bool operator ==(LineSegment2D a, LineSegment2D b)
         {
-            // If both are null, or both are same instance, return true.
-            if (Object.ReferenceEquals(a, b))
-                return true;
-
-            // If one is null, but not both, return false.
-            if (((object)a == null) || ((object)b == null))
-                return false;
-
             return (a.Start == b.Start && a.End == b.End);
         }
 
         public static bool operator !=(LineSegment2D a, LineSegment2D b)
         {
-            // If both are null, or both are same instance, return false.
-            if (Object.ReferenceEquals(a, b))
-                return false;
-
-            // If one is null, but not both, return true.
-            if (((object)a == null) || ((object)b == null))
-                return true;
-
             return (a.Start != b.Start || a.End == b.End);
         }
 
@@ -144,26 +137,19 @@ namespace Vectrics
             return Start.GetHashCode() ^ End.GetHashCode();
         }
 
-        /**
-         * Compare this line segment to another and return true if the lines are parallel.
-         */
-        public bool IsParallel(LineSegment2D other, float tolerance = 0)
+        public enum Side
         {
-            return Math.Abs(StartToEnd.Cross(other.StartToEnd)) <= tolerance;
+            Left = -1,
+            Colinear = 0,
+            Right = 1
         }
 
-        public bool IsRightSide(Vector2D pt)
+        public Side GetSide(Vector2D pt)
         {
+            return (Side)Math.Sign(StartToEnd.Cross(pt - Start));
+            /*
             //its the basic idea of the crossproduct in R3 with a garuanteed 0 for z.
-            return Start.X * (End.Y - pt.Y) + End.X * (pt.Y - Start.Y) + pt.X * (Start.Y - End.Y) > 0;
-        }
-
-        public bool IsSameSide(Vector2D a, Vector2D b)
-        {
-            //its the basic idea of the crossproduct in R3 with a garuanteed 0 for z.
-            float aSide = Start.X * (End.Y - a.Y) + End.X * (a.Y - Start.Y) + a.X * (Start.Y - End.Y);
-            float bSide = Start.X * (End.Y - b.Y) + End.X * (b.Y - Start.Y) + b.X * (Start.Y - End.Y);
-            return aSide * bSide > 0; //either both positive or both negative
+            return (Side)Math.Sign(Start.X * (End.Y - pt.Y) + End.X * (pt.Y - Start.Y) + pt.X * (Start.Y - End.Y));*/
         }
 
         /**
@@ -193,10 +179,24 @@ namespace Vectrics
         }
         */
 
+        /**
+         * Compare this line segment to another and return true if the lines have an intersection.
+         */
         public bool IsIntersecting(LineSegment2D other)
-		{
-			return !IsSameSide(other.Start, other.End) && !other.IsSameSide(Start, End);
-		}
+        {
+            int a = (int)GetSide(other.Start) * (int)GetSide(other.End);
+            int b = (int)other.GetSide(Start) * (int)other.GetSide(End);
+            return a == -1 && b == -1;
+        }
+
+        /**
+        * Compare this line segment to another and return true if the lines are parallel.
+        */
+        public bool IsParallel(LineSegment2D other, float tolerance = 0)
+        {
+            return Math.Abs(StartToEnd.Cross(other.StartToEnd)) <= tolerance;
+        }
+
 
         /**
          * Get information on how the two lines interact.
@@ -294,7 +294,19 @@ namespace Vectrics
          */
         public Vector2D Snapped(Vector2D v)
         {
-            return Sample(Math.Max(0, Math.Min(1, GetSnapRatio(v))));
+            Vector2D toEnd = End - Start;
+            float sr = toEnd.Dot(v - Start) / toEnd.LengthSquared;
+            return Start + toEnd * CgMath.Saturate(sr);
+        }
+
+        /**
+         * Returns the point on this line segment that is closest to the vector.
+         */
+        public Vector2D SnapDelta(Vector2D v)
+        {
+            Vector2D toEnd = End - Start;
+            float sr = toEnd.Dot(v - Start) / toEnd.LengthSquared;
+            return Start + toEnd * CgMath.Saturate(sr) - v;
         }
 
         /**
@@ -302,7 +314,7 @@ namespace Vectrics
          */
         public float Distance(Vector2D v)
         {
-            return Snapped(v).Distance(v);
+            return SnapDelta(v).Length;
         }
 
         /**
@@ -310,7 +322,48 @@ namespace Vectrics
          */
         public float DistanceSquared(Vector2D v)
         {
-            return Snapped(v).DistanceSquared(v);
+            return SnapDelta(v).LengthSquared;
+        }
+
+        /**
+         * Returns the square of the distance of the vector to its closest point on this line segment.
+         */
+        public float Distance(LineSegment2D other)
+        {
+            if (IsIntersecting(other))
+                return 0;//early out
+
+            //see IsIntersecting...
+            Vector2D v = StartToEnd;
+            Vector2D ov = other.StartToEnd;
+            Vector2D s = Start - other.Start;
+
+            float denom = v.Cross(ov);
+            if(denom == 0) //lines are parallel
+                return Direction.OrthogonalizedClockwise().Dot(s);
+
+            float a = CgMath.Saturate(ov.Cross(s) / denom);
+            float b = CgMath.Saturate(v.Cross(s) / denom);
+            return Math.Min(other.Distance(Sample(a)), this.Distance(other.Sample(b)));
+        }
+
+        public float DistanceSquared(LineSegment2D other)
+        {
+            //see IsIntersecting...
+            Vector2D v = StartToEnd;
+            Vector2D ov = other.StartToEnd;
+            Vector2D s = Start - other.Start;
+
+            float denom = v.Cross(ov);
+            if (denom == 0) //lines are parallel
+            {
+                float d = Direction.OrthogonalizedClockwise().Dot(s);
+                return d * d;
+            }
+
+            float a = CgMath.Saturate(ov.Cross(s) / denom);
+            float b = CgMath.Saturate(v.Cross(s) / denom);
+            return Math.Min(other.DistanceSquared(Sample(a)), this.DistanceSquared(other.Sample(b)));
         }
 
         public override string ToString()

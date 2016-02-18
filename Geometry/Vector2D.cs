@@ -7,17 +7,25 @@ using System.Text;
 
 namespace Vectrics
 {
-    public struct Vector2D
+    public struct Vector2D : IEquatable<Vector2D>, IComparable<Vector2D>
     {
         public static Vector2D Zero = new Vector2D(0, 0);
         public static Vector2D Half = new Vector2D(0.5f, 0.5f);
         public static Vector2D One = new Vector2D(1, 1);
 
-        public static Vector2D Up = new Vector2D(0, -1);
-        public static Vector2D Left = new Vector2D(-1, 0);
-        public static Vector2D Right = new Vector2D(1, 0);
-        public static Vector2D Down = new Vector2D(0, 1);
-        
+        public static Vector2D Up = new Vector2D(0, -1.0f);
+        public static Vector2D Left = new Vector2D(-1.0f, 0);
+        public static Vector2D Right = new Vector2D(1.0f, 0);
+        public static Vector2D Down = new Vector2D(0, 1.0f);
+
+        public static Vector2D Void = new Vector2D(float.NaN, float.NaN);
+
+        public bool IsVoid
+        {
+            get { return float.IsNaN(X) || float.IsNaN(Y); }
+        }
+
+
         public float X;
         public float Y;
 
@@ -43,24 +51,25 @@ namespace Vectrics
         {
             return v1 + (v2 - v1) * ratio;
         }
-       
-		public void Set(float x, float y)
-		{
-			X = x;
-			Y = y;
-		}
-
-        public void Set(Vector2D v)
-        {
-            X = v.X;
-            Y = v.Y;
-        }
 
         public Vector2D Sized(float newSize)
         {
             Vector2D result = this;
             result.Length = newSize;
             return result;
+        }
+
+        public Vector2D Clamped(float range)
+        {
+            if (Length > range)
+                return this.Sized(range);
+            return this;
+
+        }
+
+        public bool IsNonZero
+        {
+            get { return X != 0 || Y != 0; }
         }
 
         public bool IsZero
@@ -82,9 +91,18 @@ namespace Vectrics
             }
             set
             {
-                float f = value / (float)Math.Sqrt(X * X + Y * Y);
-			    X *= f;
-			    Y *= f;
+                float len = (float)Math.Sqrt(X * X + Y * Y);
+                if (len > 0)
+                {
+                    float f = value / len;
+                    X *= f;
+                    Y *= f;
+                }
+                else
+                {
+                    X = 0;
+                    Y = 0;
+                }
             }
         }
 
@@ -96,9 +114,18 @@ namespace Vectrics
             }
             set
             {
-                float f = (float)(Math.Sqrt(value) / Math.Sqrt(X * X + Y * Y));
-                X *= f;
-                Y *= f;
+                float lenSqr = X * X + Y * Y;
+                if (lenSqr > 0)
+                {
+                    float f = value / lenSqr;
+                    X *= f;
+                    Y *= f;
+                }
+                else
+                {
+                    X = 0;
+                    Y = 0;
+                }
             }
         }
 
@@ -261,8 +288,9 @@ namespace Vectrics
 		 */
 		public void Normalize()
 		{
-			X /= Length;
-			Y /= Length;
+            float len = Length;
+            X /= len;
+            Y /= len;
 		}
 
         /**
@@ -474,6 +502,11 @@ namespace Vectrics
             return (X == p.X && Y == p.Y);
         }
 
+        public bool Equals(Vector2D p)
+        {
+            return (X == p.X && Y == p.Y);
+        }
+
         public override int GetHashCode()
         {
             return (int)X ^ (int)Y;
@@ -483,5 +516,10 @@ namespace Vectrics
 		{
 			return string.Format("({0} {1})", X, Y);
 		}
+
+        public int CompareTo(Vector2D other)
+        {
+            return LengthSquared.CompareTo(other.LengthSquared);
+        }
     }
 }

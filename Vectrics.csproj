@@ -12,7 +12,8 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>85f80774</NuGetPackageImportStamp>
-    <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,15 +37,24 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\CgMath.cs" />
+    <Compile Include="Core\ContiniousFloat.cs" />
     <Compile Include="Core\Functors.cs" />
+    <Compile Include="Core\Rnd.cs" />
+    <Compile Include="Data\BitField.cs" />
+    <Compile Include="Data\DynamicAABBTree.cs" />
+    <Compile Include="Utils\Log.cs" />
+    <Compile Include="Utils\Profiler.cs" />
+    <Compile Include="Utils\RandomGenerator.cs" />
     <Compile Include="Data\Grid.cs" />
-    <Compile Include="Data\Watcher.cs" />
+    <Compile Include="Data\ScalarGrid.cs" />
+    <Compile Include="Data\VectorGrid.cs" />
+    <Compile Include="Utils\Timekeeper.cs" />
+    <Compile Include="Utils\Watcher.cs" />
     <Compile Include="Data\RingList.cs" />
     <Compile Include="Geometry\Angle.cs" />
     <Compile Include="Graphics\Colour.cs" />

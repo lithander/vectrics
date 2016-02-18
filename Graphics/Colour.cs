@@ -11,18 +11,27 @@ namespace Vectrics
         public static Colour Transparent = new Colour(0, 0, 0, 0);
         public static Colour White = new Colour(1, 1, 1, 1);
         public static Colour Black = new Colour(0, 0, 0, 1);
+        public static Colour Blue = new Colour(0, 0, 1, 1);
+        public static Colour Cyan = new Colour(0, 1, 1, 1);
+        public static Colour Grey = new Colour(0.5f, 0.5f, 0.5f, 1);
+        public static Colour Green = new Colour(0, 1, 0, 1);
+        public static Colour Magenta = new Colour(1, 0, 1, 1);
+        public static Colour Red = new Colour(1, 0, 0, 1);
+        public static Colour Yellow = new Colour(1, 1, 0, 1);
+        public static Colour Orange = new Colour(1, 0.7f, 0.1f, 1);
 
-        public float Red;
-		public float Green;
-		public float Blue;
-		public float Alpha;
+
+        public float R;
+		public float G;
+		public float B;
+		public float A;
 	
 		public Colour(float r, float g, float b, float a = 1)
 		{
-			Red = r;
-			Green = g;
-			Blue = b;
-			Alpha = a;
+			R = r;
+			G = g;
+			B = b;
+			A = a;
 		}
 
         public Colour(uint color)
@@ -31,42 +40,42 @@ namespace Vectrics
             uint r = color >> 16 & 0xFF;
             uint g = color >> 8 & 0xFF;
             uint b = color & 0xFF;
-            Red = r / 255.0f;
-            Green = g / 255.0f;
-            Blue = b / 255.0f;
-            Alpha = a / 255.0f; 
+            R = r / 255.0f;
+            G = g / 255.0f;
+            B = b / 255.0f;
+            A = a / 255.0f; 
         }
 
         public Colour(float alpha)
         {
-            Red = 1;
-            Green = 1;
-            Blue = 1;
-            Alpha = alpha;
+            R = 1;
+            G = 1;
+            B = 1;
+            A = alpha;
         }
 
         public byte RedByte
         {
-            get { return Red < 0 ? (byte)0 : Red > 1 ? (byte)255 : (byte)(Red * 255.0); }
-            set { Red = value / 255.0f; }
+            get { return R < 0 ? (byte)0 : R > 1 ? (byte)255 : (byte)(R * 255.0); }
+            set { R = value / 255.0f; }
         }
 
         public byte GreenByte
         {
-            get { return Green < 0 ? (byte)0 : Green > 1 ? (byte)255 : (byte)(Green * 255.0); }
-            set { Green = value / 255.0f; }
+            get { return G < 0 ? (byte)0 : G > 1 ? (byte)255 : (byte)(G * 255.0); }
+            set { G = value / 255.0f; }
         }
 
         public byte BlueByte
         {
-            get { return Blue < 0 ? (byte)0 : Blue > 1 ? (byte)255 : (byte)(Blue * 255.0); }
-            set { Blue = value / 255.0f; }
+            get { return B < 0 ? (byte)0 : B > 1 ? (byte)255 : (byte)(B * 255.0); }
+            set { B = value / 255.0f; }
         }
         
         public byte AlphaByte
         {
-            get { return Alpha < 0 ? (byte)0 : Alpha > 1 ? (byte)255 : (byte)(Alpha * 255.0); }
-            set { Alpha = value / 255.0f; }
+            get { return A < 0 ? (byte)0 : A > 1 ? (byte)255 : (byte)(A * 255.0); }
+            set { A = value / 255.0f; }
         }
 
         public uint RGBA
@@ -81,17 +90,17 @@ namespace Vectrics
             uint r = value >> 16 & 0xFF;
             uint g = value >> 8 & 0xFF;
             uint b = value & 0xFF;
-            Red = r / 255.0f;
-            Green = g / 255.0f;
-            Blue = b / 255.0f;
-            Alpha = a / 255.0f; 
+            R = r / 255.0f;
+            G = g / 255.0f;
+            B = b / 255.0f;
+            A = a / 255.0f; 
         }
 
         //HSV
         /**
 		* Set Hue [0..1], Saturation [0..1] and Value [0..1]
 		*/	
-		public void SetHSV(float hue, float saturation, float brightness)
+		public void SetHSV(float hue, float saturation, float brightness, float alpha = 1.0f)
 		{
 			hue = CgMath.Saturate(hue);
             saturation = CgMath.Saturate(saturation);
@@ -101,40 +110,41 @@ namespace Vectrics
 			float x = c * ( 1 - Math.Abs(hseg%2 - 1));
 			int i = (int)Math.Floor(hseg);
 			switch (i) {
-				case 0: Red = c; Green = x; Blue = 0; break;
-				case 1: Red = x; Green = c; Blue = 0; break;
-				case 2: Red = 0; Green = c; Blue = x; break;
-				case 3: Red = 0; Green = x; Blue = c; break;
-				case 4: Red = x; Green = 0; Blue = c; break;
-				default: Red = c; Green = 0; Blue = x; break;
+				case 0: R = c; G = x; B = 0; break;
+				case 1: R = x; G = c; B = 0; break;
+				case 2: R = 0; G = c; B = x; break;
+				case 3: R = 0; G = x; B = c; break;
+				case 4: R = x; G = 0; B = c; break;
+				default: R = c; G = 0; B = x; break;
 			}
 			float m = brightness - c;
-			Red += m;
-			Green += m;
-			Blue += m;
+			R += m;
+			G += m;
+			B += m;
+            A = alpha;
 		}
 
 
-        //[0..2PI]
+        //[0..1]
         public float Hue
         {
             get
             {
-                float slice = Angle.PI / 3; //60°
-                float max = Math.Max(Red, Math.Max(Green, Blue));
-                float min = Math.Min(Red, Math.Min(Green, Blue));
+                float slice = 1f / 6; //60°
+                float max = Math.Max(R, Math.Max(G, B));
+                float min = Math.Min(R, Math.Min(G, B));
                 
-                if (max == Red && Green >= Blue)
-                    return slice * (Green - Blue) / (max - min);
+                if (max == R && G >= B)
+                    return slice * (G - B) / (max - min);
                 
-                if (max == Red && Green < Blue)
-                    return slice * (Green - Blue) / (max - min) + 6 * slice;
+                if (max == R && G < B)
+                    return slice * (G - B) / (max - min) + 6 * slice;
                 
-                if (max == Green)
-                    return slice * (Blue - Red) / (max - min) + 2 * slice;
+                if (max == G)
+                    return slice * (B - R) / (max - min) + 2 * slice;
                 
                 //if (max == Blue)
-                return slice * (Red - Green) / (max - min) + 4 * slice;
+                return slice * (R - G) / (max - min) + 4 * slice;
             }
             set
             {
@@ -147,8 +157,8 @@ namespace Vectrics
         {
             get
             {
-                float max = Math.Max(Red, Math.Max(Green, Blue));
-                float min = Math.Min(Red, Math.Min(Green, Blue));
+                float max = Math.Max(R, Math.Max(G, B));
+                float min = Math.Min(R, Math.Min(G, B));
                 return (max == 0) ? 0.0f : (1.0f - (min / max));
             }
             set
@@ -162,7 +172,7 @@ namespace Vectrics
         {
             get
             {
-                return Math.Max(Red, Math.Max(Green, Blue));
+                return Math.Max(R, Math.Max(G, B));
             }
             set
             {
@@ -173,42 +183,47 @@ namespace Vectrics
         /**
 		 * Set Hue [0..1], Saturation [0..1] and Value [0..1]
 		 */
-        public static Colour FromHSV(float hue, float saturation, float value)
+        public static Colour FromHSV(float hue, float saturation, float value, float alpha = 1.0f)
 		{
             Colour result = Colour.White;
-			result.SetHSV(hue, saturation, value);
+			result.SetHSV(hue, saturation, value, alpha);
 			return result;
 		}
+
+        public static float HueFromVector(Vector2D v)
+        {
+            return Angle.NormalizeRad2(v.PolarAngleRadian - Angle.HalfPI) / Angle.TwoPI;
+        }
 
         //arithmetics
         //Basic Arithmetic
         public static Colour operator -(Colour p)
         {
-            return new Colour(-p.Red, -p.Green, -p.Blue, -p.Alpha);
+            return new Colour(-p.R, -p.G, -p.B, -p.A);
         }
         public static Colour operator +(Colour p1, Colour p2)
         {
-            return new Colour(p1.Red + p2.Red, p1.Green + p2.Green, p1.Blue + p2.Blue, p1.Alpha + p2.Alpha);
+            return new Colour(p1.R + p2.R, p1.G + p2.G, p1.B + p2.B, p1.A + p2.A);
         }
         public static Colour operator -(Colour p1, Colour p2)
         {
-            return new Colour(p1.Red - p2.Red, p1.Green - p2.Green, p1.Blue - p2.Blue, p1.Alpha - p2.Alpha);
+            return new Colour(p1.R - p2.R, p1.G - p2.G, p1.B - p2.B, p1.A - p2.A);
         }
         public static Colour operator *(Colour p1, float scale)
         {
-            return new Colour(p1.Red * scale, p1.Green * scale, p1.Blue * scale, p1.Alpha * scale);
+            return new Colour(p1.R * scale, p1.G * scale, p1.B * scale, p1.A * scale);
         }
         public static Colour operator *(Colour p1, Colour p2)
         {
-            return new Colour(p1.Red * p2.Red, p1.Green * p2.Green, p1.Blue * p2.Blue, p1.Alpha * p2.Alpha);
+            return new Colour(p1.R * p2.R, p1.G * p2.G, p1.B * p2.B, p1.A * p2.A);
         }
         public static Colour operator /(Colour p1, float scale)
         {
-            return new Colour(p1.Red / scale, p1.Green / scale, p1.Blue / scale, p1.Alpha / scale);
+            return new Colour(p1.R / scale, p1.G / scale, p1.B / scale, p1.A / scale);
         }
         public static Colour operator /(Colour p1, Colour p2)
         {
-            return new Colour(p1.Red / p2.Red, p1.Green / p2.Green, p1.Blue / p2.Blue, p1.Alpha / p2.Alpha);
+            return new Colour(p1.R / p2.R, p1.G / p2.G, p1.B / p2.B, p1.A / p2.A);
         }
 
         public static Colour FromHexString(string color)
@@ -229,7 +244,7 @@ namespace Vectrics
             result.RedByte = r;
             result.GreenByte = g;
             result.BlueByte = b;
-            result.Alpha = 1;
+            result.A = 1;
 
             return result;
         }

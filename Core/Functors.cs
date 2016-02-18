@@ -51,12 +51,21 @@ namespace Vectrics
             };
         }
 
-        //exponential smoothing with trending
-        public static Func<float, float> DoubleExponentialSmoothing(float alpha, float beta)
+        //simple exponential smoothing
+        public static Func<float, float> Identity()
         {
-            float smooth = 0.0f;
+            return (x) =>
+            {
+                return x;
+            };
+        }
+
+        //exponential smoothing with trending
+        public static Func<float, float> DoubleExponentialSmoothing(float alpha, float beta, float startValue = 0.0f)
+        {
+            float smooth = startValue;
             float trend = 0.0f;
-            float prev = 0.0f;
+            float prev = startValue;
             return (x) =>
             {
                 prev = smooth;
@@ -67,11 +76,11 @@ namespace Vectrics
         }
 
         //simple moving average with no weights applied
-        public static Func<float, float> SimpleMovingAverage(int period)
+        public static Func<float, float> SimpleMovingAverage(int period, float startValue = 0.0f)
         {
-            float[] window = new float[period];
+            float[] window = Enumerable.Repeat<float>(startValue, period).ToArray();
             int index = 0;
-            float sum = 0;
+            float sum = period * startValue;
             return (x) =>
             {
                 sum -= window[index];

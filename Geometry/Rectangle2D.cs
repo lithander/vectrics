@@ -8,8 +8,11 @@ using System.Text;
 
 namespace Vectrics
 {
-    public struct Rectangle2D
+    public struct Rectangle2D : IEquatable<Rectangle2D>
     {
+        public static Rectangle2D Zero = new Rectangle2D(0, 0, 0, 0);
+        public static Rectangle2D Void = new Rectangle2D(float.NaN, float.NaN, float.NaN, float.NaN);
+
         public enum RectRelation 
         {
 		    RECT_AROUND = -2,
@@ -51,7 +54,24 @@ namespace Vectrics
 		 * The height of the rectangle.
 		 */
 		public float Height;
-		
+
+        public float Perimeter
+        {
+            get 
+            { 
+                return 2 * (Width + Height);
+            }
+        }
+
+        public Vector2D Size
+        {
+            get { return new Vector2D(Width, Height); }
+        }
+
+        public Vector2D Center
+        {
+            get { return new Vector2D(X + Width / 2, Y + Height / 2); }
+        }
 		
 		public float Left //setting Left preserves Bottom while settign X preserves Height
 		{
@@ -73,51 +93,44 @@ namespace Vectrics
                 Y = value;
                 Height = bottom - Y;
             }
+        }        
+
+        public float Right
+        {
+            get { return X + Width; }
+            set { Width = value - X; }
+        }
+
+        public float Bottom
+        {
+            get { return Y + Height; }
+            set { Height = value - Y; }
         }
 
         public Vector2D TopLeft
         {
             get { return new Vector2D(X,Y); }
-            set 
-            {
-                float right = X + Width;
-                X = value.X;
-                Width = right - X;
-
-                float bottom = Y + Height;
-                Y = value.Y;
-                Height = bottom - Y;
-            }
+            set { Left = value.X; Top = value.Y; }
         }
-                
-        public Vector2D Size
+
+        public Vector2D TopRight
         {
-            get { return new Vector2D(Width, Height); }
-        }
-
-        public Vector2D Center
-        {
-            get { return new Vector2D(X + Width / 2, Y + Height / 2); }
-        }
-
-        public float Right
-		{
-			get { return X + Width; }
-            set { Width = value - X; }
-		}
-		
-        public float Bottom //setting top preserves bottom while X preserves Height
-		{
-			get { return Y + Height; }
-            set { Height = value - Y ; }
+            get { return new Vector2D(X + Width, Y); }
+            set { Width = value.X - X; Top = value.Y; }
         }
 
         public Vector2D BottomRight
         {
-            get { return new Vector2D(X+Width, Y+Height); }
+            get { return new Vector2D(X + Width, Y + Height); }
             set { Width = value.X - X; Height = value.Y - Y; }
         }
-        
+
+        public Vector2D BottomLeft
+        {
+            get { return new Vector2D(X, Y + Height); }
+            set { Left = value.X; Height = value.Y - Y; }
+        }
+
 		/**
 		 * The area of this rectangle
 		 */
@@ -153,23 +166,19 @@ namespace Vectrics
             Height = size.Y;
         }	
 		
-		/**
-		 * Assigns new coordinates and dimension to this rectangle.
-		 */
-		public void Set(float x = 0, float y = 0, float w = 0, float h = 0 )
-		{
-			X = x;
-			Y = y;
-			Width = w;
-			Height = h;
-		}
-
-        public void Set(Vector2D topLeft, Vector2D size)
+        public static Rectangle2D FromPoints(Vector2D p1, Vector2D p2)
         {
-            X = topLeft.X;
-            Y = topLeft.Y;
-            Width = size.X;
-            Height = size.Y;
+            return new Rectangle2D(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Abs(p1.X - p2.X), Math.Abs(p1.Y - p2.Y));
+        }
+
+        public static Rectangle2D FromPoints(float x1, float y1, float x2, float y2)
+        {
+            return new Rectangle2D(Math.Min(x1, x2), Math.Min(y1, y2), Math.Abs(x1 - x2), Math.Abs(y1 - y2));
+        }
+
+        public static Rectangle2D FromCenterRadius(Vector2D center, float radius)
+        {
+            return new Rectangle2D(center.X - radius, center.Y - radius, 2 * radius, 2 * radius);
         }
 
         public void Constrain(Rectangle2D rect)
@@ -189,80 +198,38 @@ namespace Vectrics
         }
 
         /**
-         * Enlarges the rectangle to include the position.
+         * Enlarges the rectangle to include the rectangle
          */
-        public void Add(Vector2D v)
+        public Rectangle2D Union(Rectangle2D r)
         {
-            if (v.X < X)
-            {
-                Width += X - v.X;
-                X = v.X;
-            }
-            if (v.X > X + Width)
-                Width = v.X - X;
-
-            if (v.Y < Y)
-            {
-                Height += Y - v.Y;
-                Y = v.Y;
-            }
-            if (v.Y > Y + Height)
-                Height = v.Y - Y;
+            return Rectangle2D.FromPoints(Math.Min(X, r.X), Math.Min(Y, r.Y), Math.Max(X + Width, r.X + r.Width), Math.Max(Y + Height, r.Y + r.Height));
         }
 
-        public void Add(float x, float y)
+        public Rectangle2D Union(Vector2D v)
         {
-            if (x < X)
-            {
-                Width += X - x;
-                X = x;
-            }
-            if (x > X + Width)
-                Width = x - X;
-
-            if (y < Y)
-            {
-                Height += Y - y;
-                Y = y;
-            }
-            if (y > Y + Height)
-                Height = y - Y;
+            return Rectangle2D.FromPoints(Math.Min(X, v.X), Math.Min(Y, v.Y), Math.Max(X + Width, v.X), Math.Max(Y + Height, v.Y));
         }
 
-        public void Add(Rectangle2D r)
+        public Rectangle2D Union(float x, float y)
         {
-            if (r.X < X)
-            {
-                Width += X - r.X;
-                X = r.X;
-            }
-            if (r.X + r.Width > X + Width)
-                Width += r.X - X;
-
-            if (r.Y < Y)
-            {
-                Height += Y - r.Y;
-                Y = r.Y;
-            }
-            if (r.Y > Y + Height)
-                Height += r.Y - Y;
+            return Rectangle2D.FromPoints(Math.Min(X, x), Math.Min(Y, y), Math.Max(X + Width, x), Math.Max(Y + Height, y));
         }
-		
+
+        public Rectangle2D Intersection(Rectangle2D rect)
+        {
+            if (Overlaps(rect))
+                return FromPoints(Snapped(rect.TopLeft), Snapped(rect.BottomRight));
+            else
+                return Rectangle2D.Zero;
+        }
+
 		/**
 		 * Tests if the rectangle includes the vector.
 		 */
 		public bool Contains(Vector2D v)
 		{
-			if(v.X < X)
-				return false;
-			if(v.Y < Y)
-				return false;
-			if(v.X > (X + Width))
-				return false;
-			if(v.Y > (Y + Height))
-				return false;
-			
-			return true;
+            return v.X >= X && v.Y >= Y && v.X <= (X + Width) && v.Y <= (Y + Height);
+            //return v.X >= X && v.Y >= Y && v.X <= Right && v.Y <= Bottom;
 		}
 
    		/**
@@ -270,25 +237,42 @@ namespace Vectrics
 		 */
 		public bool Contains(float x, float y)
 		{
-			if(x < X)
-				return false;
-			if(y < Y)
-				return false;
-			if(x > (X + Width))
-				return false;
-			if(y > (Y + Height))
-				return false;
-			
-			return true;
+            return x >= X && y >= Y && x <= (X + Width) && y <= (Y + Height);
 		}
 
         /**
-		 * Returns true if rect is completely outside of this;
-		 */
-		public bool IsOutside(Rectangle2D rect)
-		{
-			return (rect.X > X+Width) || (rect.Y > Y+Height) || (rect.Right < X) || (rect.Bottom < Y);
-		}
+         * Tests if the rectangle includes the rectangle.
+         */
+        public bool Contains(Rectangle2D rect)
+        {
+            return rect.X >= X && rect.Y >= Y && (rect.X + rect.Width) <= (X + Width) && (rect.Y + rect.Height) <= (Y + Height);
+        }
+
+        /**
+         * Tests if the rectangle shares space with the other rectangle.
+         */
+        public bool Overlaps(Rectangle2D rect)
+        {
+            return X <= (rect.X + rect.Width) && Y <= (rect.Y + rect.Height) && (X + Width) >= rect.X && (Y + Height) >= rect.Y;
+            //return X < rect.Right && Y < rect.Bottom && Right > rect.X && Bottom > rect.Y;
+        }      
+
+        public bool Overlaps(LineSegment2D line)
+        {
+            //same aproach as distance to line segment but simplified
+            //snap the 4 corners to the line and form delta
+            Vector2D d1 = line.SnapDelta(TopLeft);
+            Vector2D d2 = line.SnapDelta(TopRight);
+            Vector2D d3 = line.SnapDelta(BottomLeft);
+            Vector2D d4 = line.SnapDelta(BottomRight);
+            if (CgMath.Sign(d1.X, d2.X, d3.X, d4.X) == 0)//mixed signs
+                return true;
+
+            if (CgMath.Sign(d1.Y, d2.Y, d3.Y, d4.Y) == 0)//mixed signs
+                return true;
+
+            return false;
+        }
 
         public static bool operator==(Rectangle2D r1, Rectangle2D r2)
         {
@@ -308,6 +292,11 @@ namespace Vectrics
             Rectangle2D r = (Rectangle2D)obj;
             return X == r.X && Y == r.Y && Width == r.Width && Height == r.Height;
         }
+        
+        public bool Equals(Rectangle2D r)
+        {
+            return X == r.X && Y == r.Y && Width == r.Width && Height == r.Height;
+        }
 
         public override int GetHashCode()
         {
@@ -318,11 +307,18 @@ namespace Vectrics
             hash = hash * 23 + Height.GetHashCode();
             return hash;
         }
+
+        public Vector2D InRectSpace(Vector2D v)
+        {
+            return new Vector2D(
+                CgMath.Clamp(v.X - X, 0, Width),
+                CgMath.Clamp(v.Y - Y, 0, Height));
+        }
         
 		/**
-		 * Enlarges the rectangle by margin in all directions
+		 * Enlarges the rectangle by margin in all directions (CAUTION: negative margin can destroy the rect if its not large enough)
 		 */
-		public void ApplyMargin(float margin)
+		public void Expand(float margin)
 		{
 			X -= margin;
 			Y -= margin;
@@ -331,9 +327,9 @@ namespace Vectrics
 		}
 
         /**
-		 * Enlarges the rectangle by margin
+		 * Enlarges the rectangle by margin (CAUTION: negative margin can destroy the rect if its not large enough)
 		 */
-        public void ApplyMargin(float marginX, float marginY)
+        public void Expand(float marginX, float marginY)
         {
             X -= marginX;
             Y -= marginY;
@@ -341,6 +337,40 @@ namespace Vectrics
             Height += 2 * marginY;
         }
 
+        /**
+         * Enlarges the rectangle by margin
+         */
+        public void Expand(float left, float top, float right, float bottom)
+        {
+            X -= left;
+            Y -= top;
+            Width += left + right;
+            Height += top + bottom;
+        }
+
+        /**
+         * Enlarges the rectangle by margin in all directions
+         */
+        public Rectangle2D Expanded(float margin)
+        {
+            return new Rectangle2D(X - margin, Y - margin, Width + 2 * margin, Height + 2 * margin);
+        }
+
+        /**
+		 * Enlarges the rectangle by margin
+		 */
+        public Rectangle2D Expanded(float marginX, float marginY)
+        {
+            return new Rectangle2D(X - marginX, Y - marginY, Width + 2 * marginX, Height + 2 * marginY);
+        }
+
+        /**
+         * Enlarges the rectangle by margin
+         */
+        public Rectangle2D Expanded(float left, float top, float right, float bottom)
+        {
+            return new Rectangle2D(X - left, Y - top, Width + left + right, Height + top + bottom);
+        }
 
         public void ShrinkToGrid(float gridSpacing)
         {
@@ -365,14 +395,27 @@ namespace Vectrics
         /**
 		 * Scales the rectangle by a vector.
 		 */
-        public static Rectangle2D operator *(Rectangle2D r, Vector2D v)
+        public static Rectangle2D operator*(Rectangle2D r, Vector2D v)
         {
-            Rectangle2D result = r;
-            result.X *= v.X;
-            result.Y *= v.Y;
-            result.Width *= v.X;
-            result.Height *= v.Y;
-            return result;
+            return new Rectangle2D(r.TopLeft * v, r.Size * v) ;
+        }
+
+        public static Rectangle2D operator*(Rectangle2D r, float s)
+        {
+            return new Rectangle2D(r.TopLeft * s, r.Size * s);
+        }
+
+        /**
+         * Scales the rectangle by inverse of a vector.
+         */
+        public static Rectangle2D operator /(Rectangle2D r, Vector2D v)
+        {
+            return new Rectangle2D(r.TopLeft / v, r.Size / v);
+        }
+
+        public static Rectangle2D operator /(Rectangle2D r, float s)
+        {
+            return new Rectangle2D(r.TopLeft / s, r.Size / s);
         }
 				
 		/**
@@ -380,24 +423,7 @@ namespace Vectrics
 		 */
         public static Rectangle2D operator+(Rectangle2D r, Vector2D v)
         {
-            Rectangle2D result = r;
-            if(v.X < result.X)
-			{
-				result.Width += result.X - v.X;
-				result.X = v.X;
-			}
-			if(v.X > result.X+result.Width)
-				result.Width += v.X-result.X;
-			
-			if(v.Y < result.Y)
-			{
-				result.Height += result.Y - v.Y;
-				result.Y = v.Y;
-			}
-			if(v.Y > result.Y+result.Height)
-				result.Height += v.Y-result.Y;
-
-            return result;
+            return r.Union(v);
 		}
 		
 		/**
@@ -405,24 +431,7 @@ namespace Vectrics
 		 */
         public static Rectangle2D operator+(Rectangle2D r1, Rectangle2D r2)
         {
-            Rectangle2D result = r1;
-            if(r2.X < result.X)
-			{
-				result.Width += result.X - r2.X;
-				result.X = r2.X;
-			}
-			if(r2.X+r2.Width > result.X+result.Width)
-				result.Width += r2.X-result.X;
-			
-			if(r2.Y < result.Y)
-			{
-				result.Height += result.Y - r2.Y;
-				result.Y = r2.Y;
-			}
-			if(r2.Y > result.Y+result.Height)
-				result.Height += r2.Y-result.Y;
-
-            return result;
+            return r1.Union(r2);
 		}
 
 		/**
@@ -430,11 +439,57 @@ namespace Vectrics
 		 */
 		public Vector2D Snapped(Vector2D v)
 		{
-            Vector2D result;
-			result.X = Math.Max(X, Math.Min(X+Width, v.X));
-			result.Y = Math.Max(Y, Math.Min(Y+Height, v.Y));
-			return v;
-		}
+            v.X = Math.Max(X, Math.Min(X+Width, v.X));
+            v.Y = Math.Max(Y, Math.Min(Y+Height, v.Y));
+            return v;
+        }
+
+        public float Distance(Vector2D v)
+        {
+            float dX = Math.Max(X - v.X, Math.Max(v.X - X - Width, 0));
+            float dY = Math.Max(Y - v.Y, Math.Max(v.Y - Y - Height, 0));
+            return (float)Math.Sqrt((dX*dX)+(dY*dY));
+        }
+
+        public float DistanceSquared(Vector2D v)
+        {
+            float dX = Math.Max(X - v.X, Math.Max(v.X - X - Width, 0));
+            float dY = Math.Max(Y - v.Y, Math.Max(v.Y - Y - Height, 0));
+            return dX * dX + dY * dY;
+        }
+
+        public float DistanceSquared(LineSegment2D line)
+        {
+            //snap the 4 corners to the line and form delta
+            Vector2D d1 = line.SnapDelta(TopLeft);
+            Vector2D d2 = line.SnapDelta(TopRight);
+            Vector2D d3 = line.SnapDelta(BottomLeft);
+            Vector2D d4 = line.SnapDelta(BottomRight);
+            float xLower = CgMath.Min(d1.X, d2.X, d3.X, d4.X);
+            float xUpper = CgMath.Max(d1.X, d2.X, d3.X, d4.X);
+            float dX = (xUpper * xLower < 0) ? 0 : Math.Min(Math.Abs(xLower), Math.Abs(xUpper)); //if not all on the same side distance along X axis is 0
+
+            float yLower = CgMath.Min(d1.Y, d2.Y, d3.Y, d4.Y);
+            float yUpper = CgMath.Max(d1.Y, d2.Y, d3.Y, d4.Y);
+            float dY = (yUpper * yLower < 0) ? 0 : Math.Min(Math.Abs(yLower), Math.Abs(yUpper)); //if not all on the same side distance along Y axis is 0
+            return dX * dX + dY * dY;
+        }
+
+        public float Distance(LineSegment2D line)
+        {
+            return (float)Math.Sqrt(DistanceSquared(line));
+        }
+
+        /*
+        Rect2D lerp(const Rect2D& other, float alpha) const {
+            Rect2D out;
+        
+            out.min = min.lerp(other.min, alpha);
+            out.max = max.lerp(other.max, alpha);
+
+            return out;
+        }
+        */
 
         /**
 		 * Returns a combination of the values described in RectRelation
@@ -468,7 +523,6 @@ namespace Vectrics
 
 			return RectRelation.RECT_AROUND;
 		}
-
         
 		/**
 		 * Returns 1 if inside, 0 if intersecting and -1 outside.
@@ -515,84 +569,73 @@ namespace Vectrics
 			else
 				return LineRelation.LINE_INSIDE;
 		}
-	
+
         /**
-		 * Constrains a linesegment to fit in the rectangle. Uses Liang Barsky Algorithm. 
-		 * Returns reference to the passed input argument after clipping or null if no portion of the line is within the rectangle.
-		 */
+         * Constrains a linesegment to fit in the rectangle. Uses Liang Barsky Algorithm. 
+         * Returns reference to the passed input argument after clipping or null if no portion of the line is within the rectangle.
+         */
 		public LineSegment2D Clip(LineSegment2D line)
 		{
    			//int x1, int y1, int x2, int y2, 
-			float xmax = X + Width;
-			float ymax = Y + Height;
+            Vector2D max = BottomRight;
+            Vector2D start = line.Start;
+            Vector2D delta = line.StartToEnd;
 			
 			float u1 = 0.0f;
 			float u2 = 1.0f;
-			
-			float deltaX = (line.End.X - line.Start.X);
-			float deltaY = (line.End.Y - line.Start.Y);
+
+            if (delta.X == 0 && (start.X < X || start.X > max.X))
+                return LineSegment2D.Void;
+            
+            if (delta.Y == 0 && (start.Y < Y || start.Y > max.Y))
+                return LineSegment2D.Void;
 
 			//ugly but optimized
 			//left
-			float q = line.Start.X - X;
-			if( deltaX == 0 && q < 0 )
-				return null;
-			float r = q / (-deltaX);
-			if(deltaX > 0 )
+            float r = (start.X - X) / (-delta.X);
+            if (delta.X > 0)
 				u1 = Math.Max(u1, r);
-			else if( deltaX < 0 )
+            else if (delta.X < 0)
 				u2 = Math.Min(u2, r);
 			if( u1 > u2 )
-				return null;					
+                return LineSegment2D.Void;					
 			
             //right
-			q = xmax - line.Start.X;
-			if( deltaX == 0 && q < 0 )
-				return null;
-			r = q / deltaX;
-			if( deltaX < 0 )
+            r = (max.X - start.X) / delta.X;
+            if (delta.X < 0)
 				u1 = Math.Max(u1, r);
-			else if( deltaX > 0 )
+            else if (delta.X > 0)
 				u2 = Math.Min(u2, r);
 			if( u1 > u2 )
-				return null;					
-			//top
-			q = line.Start.Y - Y;
-			if( deltaY == 0 && q < 0 )
-				return null;
-			r = q / -deltaY;
-			if(deltaY > 0 )
+                return LineSegment2D.Void;					
+			
+            //top
+            r = (start.Y - Y) / -delta.Y;
+            if (delta.Y > 0)
 				u1 = Math.Max(u1, r);
-			else if( deltaY < 0 )
+            else if (delta.Y < 0)
 				u2 = Math.Min(u2, r);
 			if( u1 > u2 )
-				return null;					
-			//bottom
-			q = ymax - line.Start.Y;
-			if( deltaY == 0 && q < 0 )
-				return null;
-			r = q / deltaY;
-			if( deltaY < 0 )
+                return LineSegment2D.Void;					
+			
+            //bottom
+            r = (max.Y - start.Y) / delta.Y;
+            if (delta.Y < 0)
 				u1 = Math.Max(u1, r);
-			else if( deltaY > 0 )
+            else if (delta.Y > 0)
 				u2 = Math.Min(u2, r);
 			if( u1 > u2 )
-				return null;				
+                return LineSegment2D.Void;				
 		
 			//clip
 			if( u2 < 1 )
-				line.End = new Vector2D(
-                    line.Start.X + u2 * deltaX,
-				    line.Start.Y + u2 * deltaY
-                );
+				line.End = start + u2 * delta;
 
             if( u1 > 0)
-				line.Start = new Vector2D(
-                    line.Start.X + u1 * deltaX, 
-                    line.Start.Y + u1 * deltaY
-                );
+				line.Start = start + u1 * delta;
 
 			return line;    	
 		}
+
     }
 }

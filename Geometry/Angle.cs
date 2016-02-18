@@ -89,14 +89,16 @@ namespace Vectrics
 			return degrees * PI / 180;
 		}	
 		
+        //v & v2 need to be normalized
 		public static float ConeAngleRadian(Vector2D v, Vector2D v2)
 		{
-            if (v == v2)
+            if (v == v2 || v.IsZero || v2.IsZero)
                 return 0.0f;
 
             return NormalizeRad((float)Math.Atan2(v.Y, v.X) - (float)Math.Atan2(v2.Y, v2.X));
 		}
 
+        //v & v2 need to be normalized
         public static float ConeAngleDegree(Vector2D v, Vector2D v2)
         {
             if (v == v2)
@@ -105,11 +107,13 @@ namespace Vectrics
             return NormalizeRad((float)Math.Atan2(v.Y, v.X) - (float)Math.Atan2(v2.Y, v2.X)) * 180 / PI;
         }
 
+        //v & v2 need to be normalized
 		public static float PolarAngleRadian(Vector2D v)
 		{
 			return (float)Math.Atan2(v.Y, v.X);
 		}
 
+        //v & v2 need to be normalized
         public static float PolarAngleDegree(Vector2D v)
         {
             return (float)Math.Atan2(v.Y, v.X) * 180 / PI;
