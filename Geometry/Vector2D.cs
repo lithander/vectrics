@@ -226,7 +226,11 @@ namespace Vectrics
         {
             //Vector2D normalized = direction.Normalized();
             //return normalized * Dot(normalized);
-            return direction * Dot(direction) / direction.LengthSquared;
+            float dt = Dot(direction);
+            if (dt != 0)
+                return direction * dt / direction.LengthSquared;
+            else
+                return Vector2D.Zero;
         }
 
         //Operations
