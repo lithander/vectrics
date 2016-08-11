@@ -80,14 +80,6 @@ namespace Vectrics
             return _data[index];
         }
 
-        public IEnumerable<T> SampleNeighbours(Vector2D point)
-        {
-            int i = CellIndexClamped(point);
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-        }
 
         public IEnumerable<T> SampleRegion(Rectangle2D region)
         {

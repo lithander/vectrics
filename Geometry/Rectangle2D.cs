@@ -465,12 +465,12 @@ namespace Vectrics
             Vector2D d2 = line.SnapDelta(TopRight);
             Vector2D d3 = line.SnapDelta(BottomLeft);
             Vector2D d4 = line.SnapDelta(BottomRight);
-            float xLower = CgMath.Min(d1.X, d2.X, d3.X, d4.X);
-            float xUpper = CgMath.Max(d1.X, d2.X, d3.X, d4.X);
+            float xLower = Math.Min(Math.Min(d1.X, d2.X), Math.Min(d3.X, d4.X));
+            float xUpper = Math.Max(Math.Max(d1.X, d2.X), Math.Max(d3.X, d4.X));
             float dX = (xUpper * xLower < 0) ? 0 : Math.Min(Math.Abs(xLower), Math.Abs(xUpper)); //if not all on the same side distance along X axis is 0
 
-            float yLower = CgMath.Min(d1.Y, d2.Y, d3.Y, d4.Y);
-            float yUpper = CgMath.Max(d1.Y, d2.Y, d3.Y, d4.Y);
+            float yLower = Math.Min(Math.Min(d1.Y, d2.Y), Math.Min(d3.Y, d4.Y));
+            float yUpper = Math.Max(Math.Max(d1.Y, d2.Y), Math.Max(d3.Y, d4.Y));
             float dY = (yUpper * yLower < 0) ? 0 : Math.Min(Math.Abs(yLower), Math.Abs(yUpper)); //if not all on the same side distance along Y axis is 0
             return dX * dX + dY * dY;
         }

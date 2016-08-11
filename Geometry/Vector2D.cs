@@ -521,5 +521,15 @@ namespace Vectrics
         {
             return LengthSquared.CompareTo(other.LengthSquared);
         }
+
+        public static int CompareTo(Vector2D first, Vector2D second)
+        {
+            return first.LengthSquared.CompareTo(second.LengthSquared);
+        }
+
+        public static bool operator <(Vector2D x, Vector2D y) { return CompareTo(x, y) < 0; }
+        public static bool operator >(Vector2D x, Vector2D y) { return CompareTo(x, y) > 0; }
+        public static bool operator <=(Vector2D x, Vector2D y) { return CompareTo(x, y) <= 0; }
+        public static bool operator >=(Vector2D x, Vector2D y) { return CompareTo(x, y) >= 0; }
     }
 }

@@ -12,14 +12,13 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>85f80774</NuGetPackageImportStamp>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\..\unity\game\Assets\Code\Libs\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\..\unity\game\Assets\Code\Libs\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -44,16 +43,18 @@
     <Compile Include="Core\CgMath.cs" />
     <Compile Include="Core\ContiniousFloat.cs" />
     <Compile Include="Core\Functors.cs" />
+    <Compile Include="Core\LINQExtensions.cs" />
     <Compile Include="Core\Rnd.cs" />
     <Compile Include="Data\BitField.cs" />
     <Compile Include="Data\DynamicAABBTree.cs" />
+    <Compile Include="Utils\DefaultProfiler.cs" />
+    <Compile Include="Utils\DefaultLoadMonitor.cs" />
     <Compile Include="Utils\Log.cs" />
     <Compile Include="Utils\Profiler.cs" />
     <Compile Include="Utils\RandomGenerator.cs" />
     <Compile Include="Data\Grid.cs" />
     <Compile Include="Data\ScalarGrid.cs" />
     <Compile Include="Data\VectorGrid.cs" />
-    <Compile Include="Utils\Timekeeper.cs" />
     <Compile Include="Utils\Watcher.cs" />
     <Compile Include="Data\RingList.cs" />
     <Compile Include="Geometry\Angle.cs" />
