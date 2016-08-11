@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Vectrics </id>
+    <version>0.1.0.2</version>
+    <title>Vectrics</title>
+    <authors>pixelpracht.net</authors>
+    <owners>pixelpracht.net</owners>
+    <projectUrl>https://github.com/lithander/vectrics</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>2D math, helpers and utilities</description>
+	<releaseNotes>Unity Subset v3.5 support</releaseNotes>
+	<copyright>Copyright 2016</copyright>
+    <tags>math vector utils cg helper linear algebra interpolation</tags>
+  </metadata>
+  <files>
+	<file src="bin\Release\net35\Vectrics.dll" target="lib\net35\Vectrics.dll" />
+	<file src="bin\Release\net35\Vectrics.pdb" target="lib\net35\Vectrics.pdb" />
+	<file src="bin\Release\net35--Unity Subset v3.5\Vectrics.dll" target="lib\net35-unity_subset\Vectrics.dll" />
+	<file src="bin\Release\net35--Unity Subset v3.5\Vectrics.pdb" target="lib\net35-unity_subset\Vectrics.pdb" />
+  </files>
+ </package>
