@@ -306,7 +306,7 @@ namespace Vectrics
             float fromAngle = from.PolarAngleRadian;
             float toAngle = to.PolarAngleRadian;
             float delta = toAngle - fromAngle;
-            Angle.NormalizeRad(delta);
+            delta = Angle.NormalizeRad(delta);
             return from.RotatedRadian(delta * weight);
         }
 
