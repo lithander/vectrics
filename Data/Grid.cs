@@ -72,21 +72,18 @@ namespace Vectrics
             for (int i = 0; i < max_i; i++)
                 _data[i] = value;
         }
-        
+
+        public void Clear(Func<T> generator)
+        {
+            int max_i = _data.Count;
+            for (int i = 0; i < max_i; i++)
+                _data[i] = generator();
+        }
 
         public T Sample(Vector2D point)
         {
             int index = CellIndexClamped(point);
             return _data[index];
-        }
-
-        public IEnumerable<T> SampleNeighbours(Vector2D point)
-        {
-            int i = CellIndexClamped(point);
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
-            yield return _data[Math.Min(_stride - 1, Math.Max(0, i + 1))];
         }
 
         public IEnumerable<T> SampleRegion(Rectangle2D region)
@@ -195,9 +192,15 @@ namespace Vectrics
             return _innerRegion.Snapped(point);
         }
 
-        public void Chart(Vector2D point, T newData)
+        public void ChartRaw(Vector2D point, T newData)
         {
             int index = CellIndex(point);
+            _data[index] = newData;
+        }
+
+        public void Chart(Vector2D point, T newData)
+        {
+            int index = CellIndexClamped(point);
             _data[index] = newData;
         }
 

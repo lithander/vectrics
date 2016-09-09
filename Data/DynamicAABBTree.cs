@@ -366,15 +366,15 @@ namespace Vectrics
             }
         }
 
-        public struct Pair<T>
+        public struct Pair<T_Pair>
         {
-            public Pair(T a, T b)
+            public Pair(T_Pair a, T_Pair b)
             {
                 A = a;
                 B = b;
             }
-            public T A;
-            public T B;
+            public T_Pair A;
+            public T_Pair B;
         }
 
         Stack<TreeNode<T>> _resultStack = new Stack<TreeNode<T>>(32);
