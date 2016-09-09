@@ -13,7 +13,7 @@ namespace Vectrics
 
         }
 
-        public Vector2D SampleStepped(Vector2D point, float edge0, float edge1)
+        public Vector2D SampleLinStepped(Vector2D point, float edge0, float edge1)
         {
             Vector2D dir = Sample(point);
             return dir.Sized(CgMath.Linstep(edge0, edge1, dir.Length));

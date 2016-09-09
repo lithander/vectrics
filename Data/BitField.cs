@@ -38,6 +38,14 @@ namespace Vectrics.Data
             return _flags[name];
         }
 
+        public int GetAllBits()
+        {
+            int result = 0;
+            foreach (int i in _flags.Values)
+                result |= i;
+            return result;
+        }
+
         public int GetBits(params string[] names)
         {
             int result = 0;

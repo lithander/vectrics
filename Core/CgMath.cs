@@ -224,16 +224,12 @@ namespace Vectrics
 
         public static Vector2D Min(Vector2D a, Vector2D b)
         {
-            return new Vector2D(
-                Math.Min(a.X, b.X),
-                Math.Min(a.Y, b.Y));
+            return (a < b) ? a : b;
         }
         
         public static Vector2D Max(Vector2D a, Vector2D b)
         {
-            return new Vector2D(
-                Math.Max(a.X, b.X),
-                Math.Max(a.Y, b.Y));
+            return (a > b) ? a : b;
         }
 
         public static Vector2D Sign(Vector2D v)
@@ -305,6 +301,15 @@ namespace Vectrics
             return from + (to - from) * weight;
         }
 
+        public static Vector2D LerpDirection(Vector2D from, Vector2D to, float weight)
+        {
+            float fromAngle = from.PolarAngleRadian;
+            float toAngle = to.PolarAngleRadian;
+            float delta = toAngle - fromAngle;
+            delta = Angle.NormalizeRad(delta);
+            return from.RotatedRadian(delta * weight);
+        }
+
         public static Vector2D Smerp(Vector2D from, Vector2D to, float t)
         {
             float weight = t * t * (3.0f - (2.0f * t));
@@ -350,15 +355,6 @@ namespace Vectrics
             return v.Max();
         }
 
-        public static Vector2D Max(params Vector2D[] v)
-        {
-            Vector2D result = v.First();
-            for (int i = 1; i < v.Length; i++)
-                result = Max(result, v[i]);
-            return result;
-        }
-
-
         public static float Min(params float[] v)
         {
             return v.Min();
@@ -367,14 +363,6 @@ namespace Vectrics
         public static int Min(params int[] v)
         {
             return v.Min();
-        }
-
-        public static Vector2D Min(params Vector2D[] v)
-        {
-            Vector2D result = v.First();
-            for (int i = 1; i < v.Length; i++)
-                result = Min(result, v[i]);
-            return result;
         }
 
         public static int Sign(params float[] v)

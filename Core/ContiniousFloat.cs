@@ -57,7 +57,7 @@ namespace Vectrics
         public void Change(float value, float deltaTime, float changePerSecond)
         {
             float dv = value - _value;
-            _value += CgMath.Min(deltaTime * changePerSecond, Math.Abs(dv)) * Math.Sign(dv);
+            _value += Math.Min(deltaTime * changePerSecond, Math.Abs(dv)) * Math.Sign(dv);
             _value = CgMath.Clamp(_value, _minValue, _maxValue);
         }
 

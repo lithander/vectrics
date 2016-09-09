@@ -86,6 +86,7 @@ namespace Vectrics
             return _data[index];
         }
 
+
         public IEnumerable<T> SampleRegion(Rectangle2D region)
         {
             if (!_region.Overlaps(region))
