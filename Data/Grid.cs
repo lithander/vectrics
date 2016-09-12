@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 namespace Vectrics
 {
     public class Grid<T>
@@ -85,7 +84,6 @@ namespace Vectrics
             int index = CellIndexClamped(point);
             return _data[index];
         }
-
 
         public IEnumerable<T> SampleRegion(Rectangle2D region)
         {
@@ -178,7 +176,40 @@ namespace Vectrics
                 yield return _data[i];
 
         }
-        
+
+        public IEnumerable<T> SampleOutward(Vector2D point, float range)
+        {
+            //this iterates over all cells within 'range' of 'point' in a pattern so that 
+            //for each visited cell any neighbours closer to 'point' have allready been visited
+            point -= _region.TopLeft;
+            point *= _toGrid;
+            int py = (int)point.Y;
+            int px = (int)point.X;
+            if (px < _stride && px >= 0 && py < _rows && py >= 0)
+                yield return _data[px + _stride * py];
+            int max_i = (int)Math.Ceiling(range * Math.Sqrt(2));
+            for (int i = 1; i <= max_i; i++)
+                for (int j = (int)Math.Max(0, i - range); j < i && j <= range; j++)
+                {
+                    int x = px - i + j;
+                    int y = py - j;
+                    if (x < _stride && x >= 0 && y < _rows && y >= 0)
+                        yield return _data[x + _stride * y];
+                    x = px + i - j;
+                    y = py + j; 
+                    if (x < _stride && x >= 0 && y < _rows && y >= 0)
+                        yield return _data[x + _stride * y];
+                    x = px + j;
+                    y = py - i + j;
+                    if (x < _stride && x >= 0 && y < _rows && y >= 0)
+                        yield return _data[x + _stride * y];
+                    x = px - j;
+                    y = py + i - j;
+                    if (x < _stride && x >= 0 && y < _rows && y >= 0)
+                        yield return _data[x + _stride * y];
+                }
+        }
+
         public T SampleOrDefault(Vector2D point)
         {
             if (!_innerRegion.Contains(point))
