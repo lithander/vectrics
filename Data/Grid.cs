@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 namespace Vectrics
 {
     public class Grid<T>
@@ -130,23 +131,29 @@ namespace Vectrics
         public CellRegion RegionIndicesClamped(Rectangle2D rect)
         {
             rect = rect.Intersection(_region);
-            rect.ExpandToGrid(_spacing);
             CellRegion region = new CellRegion();
-            region.Start = CellIndexClamped(rect.TopLeft);
-            float width = rect.Width / _spacing;
-            region.Right = (int)width;
-            if (region.Right <= width) //frac 0
-                region.Right--;
 
-            float height = rect.Height / _spacing;
-            region.Down = (int)height;
-            if (region.Down <= height) //frac 0
-                region.Down--;
+            //.0 is considered the start of a new cell
+            Vector2D p1 = _toGrid * (rect.TopLeft - _region.TopLeft);
+            int x1 = Math.Min(_stride - 1, Math.Max(0, (int)p1.X));
+            int y1 = Math.Min(_rows - 1, Math.Max(0, (int)p1.Y));
+            region.Start = y1 * _stride + x1;
+
+            //.0 is included in the previous cell
+            Vector2D p2 = _toGrid * (rect.BottomRight - _region.TopLeft);
+            int x2 = Math.Min(_stride - 1, Math.Max(x1, (int)(Math.Ceiling(p2.X) - 1)));
+            int y2 = Math.Min(_rows - 1, Math.Max(y1, (int)(Math.Ceiling(p2.Y) - 1)));
+            region.Right = x2 - x1;
+            region.Down = y2 - y1;
+
             return region;
         }
 
         public IEnumerable<T> SamplePerimeter(Rectangle2D rect)
         {
+            if (!_region.Overlaps(rect))
+                yield break;
+
             CellRegion r = RegionIndicesClamped(rect);
             if (r.Right == 0 && r.Down == 0)
             {
