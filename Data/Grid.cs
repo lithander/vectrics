@@ -98,57 +98,6 @@ namespace Vectrics
                     yield return _data[i + y * _stride + x];
         }
 
-        public IEnumerable<T> SampleRegionOutward(Rectangle2D region)
-        {
-            if (!_region.Overlaps(region))
-                yield break;
-
-            CellRegion r = RegionIndicesClamped(region);
-            //offset [ox, oy] starts at [0, 0] and spirals outward
-            int ox = 0;
-            int oy = 0;
-            int dx = 0;
-            int dy = -1;
-            int halfX = r.Right / 2;
-            int halfY = r.Down / 2;
-            int tmp = Math.Max(r.Right, r.Down);
-            int max = tmp * tmp;
-            for (int i = 0; i < max; i++)
-            {
-                if((ox >= -halfX) && (ox <= halfX) && (oy >= -halfY) && (oy <= halfY))
-                    yield return  _data[r.Start + halfX + ox + _stride * (halfY + oy)];
-                if((ox == oy) || (ox < 0 && ox == -oy) || (ox > 0 && ox == 1-oy))
-                {
-                    tmp = dx;
-                    dx = -dy;
-                    dy = tmp;
-                }
-                ox += dx;
-                oy += dy;
-            }
-        }
-
-        public CellRegion RegionIndicesClamped(Rectangle2D rect)
-        {
-            rect = rect.Intersection(_region);
-            CellRegion region = new CellRegion();
-
-            //.0 is considered the start of a new cell
-            Vector2D p1 = _toGrid * (rect.TopLeft - _region.TopLeft);
-            int x1 = Math.Min(_stride - 1, Math.Max(0, (int)p1.X));
-            int y1 = Math.Min(_rows - 1, Math.Max(0, (int)p1.Y));
-            region.Start = y1 * _stride + x1;
-
-            //.0 is included in the previous cell
-            Vector2D p2 = _toGrid * (rect.BottomRight - _region.TopLeft);
-            int x2 = Math.Min(_stride - 1, Math.Max(x1, (int)(Math.Ceiling(p2.X) - 1)));
-            int y2 = Math.Min(_rows - 1, Math.Max(y1, (int)(Math.Ceiling(p2.Y) - 1)));
-            region.Right = x2 - x1;
-            region.Down = y2 - y1;
-
-            return region;
-        }
-
         public IEnumerable<T> SamplePerimeter(Rectangle2D rect)
         {
             if (!_region.Overlaps(rect))
@@ -181,7 +130,6 @@ namespace Vectrics
             //BOTTOMLEFT -> TOPLEFT
             for (int i = bl; i > tl; i -= _stride)
                 yield return _data[i];
-
         }
 
         public IEnumerable<T> SampleOutward(Vector2D point, float range)
@@ -216,6 +164,57 @@ namespace Vectrics
                         yield return _data[x + _stride * y];
                 }
         }
+
+
+        public IEnumerable<T> SampleRegionOutward(Rectangle2D region)
+        {
+            if (!_region.Overlaps(region))
+                yield break;
+
+            CellRegion r = RegionIndicesClamped(region);
+            if (r.Right == 0 && r.Down == 0)
+            {
+                yield return _data[r.Start];
+                yield break;
+            }
+
+            int c = CellIndexClamped(region.Center); //cell where the iteration starts
+            int px = c % _stride; //grid column of the start cell
+            int py = c / _stride; //grid row of the start cell
+            //cells outside these constrains need to be skipped
+            int x0 = r.Start % _stride;
+            int y0 = r.Start / _stride;
+            int x1 = x0 + r.Right;
+            int y1 = y0 + r.Down;
+            //variables to track current offset and direction
+            int ox = 0;
+            int oy = 0;
+            int dx = 0;
+            int dy = -1;
+            int remaining = (1+r.Right) * (1+r.Down); //the expected amount of samples so we know when to stop
+            while(remaining > 0)
+            {
+                int x = px + ox;
+                int y = py + oy;
+                //within clamped region?
+                if(x >= x0 && x <= x1 && y >= y0 && y <= y1)
+                {
+                    yield return _data[x + _stride * y];
+                    remaining--;
+                }
+                //change direction?
+                if ((ox == oy) || (ox < 0 && ox == -oy) || (ox > 0 && ox == 1 - oy))
+                {
+                    int tmp = dx;
+                    dx = -dy;
+                    dy = tmp;
+                }
+                //next
+                ox += dx;
+                oy += dy;
+            }
+        }
+
 
         public T SampleOrDefault(Vector2D point)
         {
@@ -281,6 +280,27 @@ namespace Vectrics
             for (float x = bounds.X; x < bounds.Right; x += _spacing)
                 for (float y = bounds.Y; y < bounds.Bottom; y += _spacing)
                     yield return new Vector2D(x + 0.5f * _spacing, y + 0.5f * _spacing);
+        }
+        
+        public CellRegion RegionIndicesClamped(Rectangle2D rect)
+        {
+            rect = rect.Intersection(_region);
+            CellRegion region = new CellRegion();
+
+            //.0 is considered the start of a new cell
+            Vector2D p1 = _toGrid * (rect.TopLeft - _region.TopLeft);
+            int x1 = Math.Min(_stride - 1, Math.Max(0, (int)p1.X));
+            int y1 = Math.Min(_rows - 1, Math.Max(0, (int)p1.Y));
+            region.Start = y1 * _stride + x1;
+
+            //.0 is included in the previous cell
+            Vector2D p2 = _toGrid * (rect.BottomRight - _region.TopLeft);
+            int x2 = Math.Min(_stride - 1, Math.Max(x1, (int)(Math.Ceiling(p2.X) - 1)));
+            int y2 = Math.Min(_rows - 1, Math.Max(y1, (int)(Math.Ceiling(p2.Y) - 1)));
+            region.Right = x2 - x1;
+            region.Down = y2 - y1;
+
+            return region;
         }
 
         public IList<T> RawData
