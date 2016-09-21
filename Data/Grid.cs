@@ -215,6 +215,46 @@ namespace Vectrics
             }
         }
 
+        //Von Neumann neighborhood
+        public IEnumerable<T> Sample4Connected(Vector2D point)
+        {
+            int c = CellIndexClamped(point);
+            int x = c % _stride; //grid column of the start cell
+            int y = c / _stride; //grid row of the start cell
+            if(x + 1 < _stride)
+                yield return _data[(x + 1) + _stride * y];
+            if (y + 1 < _rows)
+                yield return _data[x + _stride * (y+1)];
+            if (x > 0)
+                yield return _data[(x - 1) + _stride * y];
+            if (y > 0)
+                yield return _data[x + _stride * (y - 1)];
+        }
+
+        //Moore neighborhood
+        public IEnumerable<T> Sample8Connected(Vector2D point)
+        {
+            int c = CellIndexClamped(point);
+            int x = c % _stride; //grid column of the start cell
+            int y = c / _stride; //grid row of the start cell
+            if (x + 1 < _stride)
+                yield return _data[(x + 1) + _stride * y];
+            if (y + 1 < _rows)
+                yield return _data[x + _stride * (y + 1)];
+            if (x > 0)
+                yield return _data[(x - 1) + _stride * y];
+            if (y > 0)
+                yield return _data[x + _stride * (y - 1)];
+            //like von Neuman but now adde the diagonals
+            if (x + 1 < _stride && y > 0)
+                yield return _data[(x + 1) + _stride * (y - 1)];
+            if (x + 1 < _stride && y + 1 < _rows)
+                yield return _data[(x + 1) + _stride * (y + 1)];
+            if (x > 0 && y + 1 < _rows)
+                yield return _data[(x - 1) + _stride * (y + 1)];
+            if (x > 0 && y > 0)
+                yield return _data[(x - 1) + _stride * (y - 1)];
+        }
 
         public T SampleOrDefault(Vector2D point)
         {
