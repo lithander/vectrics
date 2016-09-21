@@ -151,7 +151,7 @@ namespace Vectrics
 		{
             get
             {
-                return (float)(Math.Atan2(Y, X) + Math.PI);
+                return (float)(Math.Atan2(Y, X) + Math.PI); //TODO: stop adding PI?
             }
 
             set

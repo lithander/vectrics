@@ -41,6 +41,21 @@ namespace Vectrics
             return Math.Max(-1, Math.Min(1, v));
         }
 
+        //Normalizes any number to an arbitrary range by assuming the range wraps around when going below min or above max 
+        public static float Normalize(float value, float range_min, float range_max)
+        {
+            float width = range_max - range_min;
+            float offset = value - range_min; //value relative to start
+            return range_min + offset - (float)Math.Floor(offset / width) * width; //start + position within the range
+        }
+
+        public static double Normalize(double value, double range_min, double range_max)
+        {
+            double width = range_max - range_min;
+            double offset = value - range_min; //value relative to start
+            return range_min + offset - Math.Floor(offset / width) * width; //start + position within the range
+        }
+
         public static float Lerp(float from, float to, float weight)
         {
             return from + weight * (to - from);
@@ -258,6 +273,13 @@ namespace Vectrics
             return new Vector2D(
                 (float)Math.Ceiling(v.X),
                 (float)Math.Ceiling(v.Y));
+        }
+
+        public static Vector2D Trunc(Vector2D v)
+        {
+            return new Vector2D(
+                (float)Math.Truncate(v.X),
+                (float)Math.Truncate(v.Y));
         }
 
         public static Vector2D Clamp(Vector2D x, Vector2D a, Vector2D b)
